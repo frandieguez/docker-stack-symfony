@@ -53,4 +53,3 @@ volumes/application/vendor
 volumes/application/var/cache
 volumes/application/var/logs
 volumes/application/var/sessions
-volumes/application/var/logs

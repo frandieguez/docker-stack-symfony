@@ -1,0 +1,84 @@
+version: '2'
+
+services:
+    # Uncomment if you need ElastiSearch
+    # elasticsearch:
+    #     image: elasticsearch
+    #     ports:
+    #         - 9200:9200
+    #         - 9300:9300
+
+    fpm:
+        build: configs/php-fpm/
+        links:
+            # - elasticsearch
+            # - memcached
+            - mysql
+            # - mongo
+            # - rabbitmq
+            # - redis
+        volumes:
+            - ./volumes/application:/var/www/symfony
+            - ./configs/php-fpm/php-ini-overrides.ini:/usr/local/etc/php/conf.d/99-overrides.ini
+
+    # Uncomment if you need memcached
+    # memcached:
+    #     image: memcached
+    #     ports:
+    #         - 11211:11211
+
+    mysql:
+        image: mysql
+        environment:
+            MYSQL_DATABASE: symfony
+            MYSQL_USER: devdb
+            MYSQL_PASSWORD: devdb
+            MYSQL_ROOT_PASSWORD: root
+        volumes:
+            - ./volumes/mysql:/var/lib/mysql
+        ports:
+            - 33060:3306
+
+    # Uncomment if you need MongoDB
+    # mongo:
+    #     image: mongo
+    #     ports:
+    #         - 27017:27017
+
+    nginx:
+        image: nginx
+        ports:
+            - 8086:80
+        volumes:
+            - ./volumes/application:/var/www/symfony
+            - ./configs/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+        links:
+            - fpm
+    
+    # Uncomment if you need RabbitMQ
+    # rabbitmq:
+    #     image: rabbitmq:3.6.1-management
+    #     ports:
+    #         - 15672:15672
+    #         - 5672:5672
+    #     environment:
+    #         RABBITMQ_DEFAULT_PASS: root
+    #         RABBITMQ_DEFAULT_USER: root
+
+    # Uncomment if you need Redis
+    redis:
+        image: redis:latest
+
+    varnish:
+        # build: docker/varnish/
+        image: newsdev/varnish:4.1.0
+        ports:
+            - 8087:8087
+            - 8080:80
+        volumes:
+            - ./configs/varnish/default.vcl:/etc/varnish/default.vcl
+        environment:
+            VARNISH_PORT: 8087
+            VARNISH_MEMORY: 1G
+        links:
+            - nginx
